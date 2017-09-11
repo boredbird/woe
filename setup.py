@@ -17,7 +17,7 @@ setup(
     license='NJUPT',
     packages=find_packages(),
     platforms=["all"],
-    url='https://github.com/boredbird/Python_ML_Code',
+    url='https://github.com/boredbird/woe',
     classifiers=[
         'Development Status :: 1 - Alpha',
         'Operating System :: OS Independent',

@@ -5,14 +5,13 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 
-#rst 格式化输出到csv
 def eval_feature_detail(Info_Value_list,out_path=False):
     """
-    将rst列表格式化成标准的数据框
-    :param Info_Value_list:
-    :return:
+    format InfoValue list to Dataframe
+    :param Info_Value_list: Instance list of Class InfoValue
+    :param out_path:specify the Dataframe to csv file path ,default False
+    :return:DataFrame about feature detail
     """
-
     rst = Info_Value_list
     format_rst = []
 
@@ -21,28 +20,18 @@ def eval_feature_detail(Info_Value_list,out_path=False):
         split_list = []
         if rst[kk].split_list != []:
             if not rst[kk].is_discrete:
-                # rowcnt = len(rst[kk].iv_list)
-                # var_name = [rst[kk].var_name]*rowcnt
-                # iv = [rst[kk].iv]*rowcnt
-                # iv_list = rst[kk].iv_list
-                # woe_list = rst[kk].woe_list
-
-                #split_list处理
+                #deal with split_list
                 split_list.append('(-INF,'+str(rst[kk].split_list[0])+']')
                 for i in range(0,len(rst[kk].split_list)-1):
                     split_list.append('(' + str(rst[kk].split_list[i])+','+ str(rst[kk].split_list[i+1]) + ']')
 
                 split_list.append('(' + str(rst[kk].split_list[len(rst[kk].split_list)-1]) + ',+INF)')
-                #合并为数据框
-                # a = pd.DataFrame({'var_name':var_name,'iv_list':iv_list,'woe_list':woe_list,'split_list':split_list,'iv':iv})
-                # format_rst.append(a)
-
             else:
                 split_list = rst[kk].split_list
         else:
             split_list.append('(-INF,+INF)')
 
-        #合并为数据框
+        # merge into dataframe
         columns = ['var_name','split_list','sub_total_sample_num','positive_sample_num'
             ,'negative_sample_num','sub_total_num_percentage','positive_rate_in_sub_total'
             ,'woe_list','iv_list','iv']
@@ -59,8 +48,7 @@ def eval_feature_detail(Info_Value_list,out_path=False):
                              ,'negative_rate_in_sub_total':rst[kk].negative_rate_in_sub_total},columns=columns)
         format_rst.append(a)
 
-
-    #数据框列表纵向合并成一个大数据框
+    # merge dataframe list into one dataframe vertically
     cformat_rst = pd.concat(format_rst)
 
     if out_path:
@@ -71,6 +59,12 @@ def eval_feature_detail(Info_Value_list,out_path=False):
 
 
 def eval_data_summary(df_list,source_name,out_path=False):
+    '''
+    :param df_list: A dataset DataFrame
+    :param source_name: string type
+    :param out_path: specify the Dataframe to csv file path ,default False
+    :return: DataFrame about dataset summary info
+    '''
     train_validation_data_summary = []
     for i in range(len(source_name)):
         a = dict()
@@ -91,6 +85,11 @@ def eval_data_summary(df_list,source_name,out_path=False):
 
 
 def eval_model_summary(list_dict,out_path=False):
+    '''
+    :param list_dict: a list of dict
+    :param out_path: specify the Dataframe to csv file path ,default False
+    :return: DataFrame about model summary info
+    '''
     model_summary = pd.DataFrame([list_dict[0]])
     if len(list_dict)>1:
         for i in range(len(list_dict)-1):
@@ -105,7 +104,11 @@ def eval_model_summary(list_dict,out_path=False):
 
 
 def wald_test(model,X):
-
+    '''
+    :param model: a model file that should have predict_proba() function
+    :param X: dataset features DataFrame
+    :return: the value of wald_stats,p_value
+    '''
     pred_probs = np.matrix(model.predict_proba(X))
     X_design = np.hstack((np.ones(shape=(X.shape[0], 1)), X))
     diag_array = np.multiply(pred_probs[:, 0], pred_probs[:, 1]).A1
@@ -122,7 +125,16 @@ def wald_test(model,X):
 
     return wald_stats,p_value
 
+
 def eval_feature_summary(train_X,model,civ_list,candidate_var_list,out_path=False):
+    '''
+    :param train_X: training dataset features DataFrame
+    :param model: model file
+    :param civ_list: list of InfoValue Class instances
+    :param candidate_var_list: the list of model input variable
+    :param out_path: specify the Dataframe to csv file path ,default False
+    :return: DataFrame about feature summary
+    '''
     feature_summary = {}
     feature_summary['feature_name'] = list(['Intercept'])
     feature_summary['feature_name'].extend(list(candidate_var_list))
@@ -142,7 +154,13 @@ def eval_feature_summary(train_X,model,civ_list,candidate_var_list,out_path=Fals
 
 
 def eval_segment_metrics(target, predict_proba, segment_cnt = 20,out_path=False):
-
+    '''
+    :param target: the list of actual target value
+    :param predict_proba: the list of predicted probability
+    :param segment_cnt: the segment number
+    :param out_path: specify the Dataframe to csv file path ,default False
+    :return: DataFrame about segment metrics
+    '''
     proba_descend_idx = np.argsort(predict_proba)
     proba_descend_idx = proba_descend_idx[::-1]
 
@@ -208,6 +226,13 @@ def eval_segment_metrics(target, predict_proba, segment_cnt = 20,out_path=False)
 
 
 def eval_model_stability(proba_train, proba_validation, segment_cnt = 10,out_path=False):
+    '''
+    :param proba_train: the list of predicted probability on training dataset
+    :param proba_validation: the list of predicted probability on validation dataset
+    :param segment_cnt: the segment number
+    :param out_path: specify the Dataframe to csv file path ,default False
+    :return: DataFrame about model stability
+    '''
     step = 1.0/segment_cnt
     flag = 0.0
     model_stability = []
@@ -249,6 +274,14 @@ def eval_model_stability(proba_train, proba_validation, segment_cnt = 10,out_pat
     return model_stability
 
 def eval_feature_stability(civ_list, df_train, df_validation,candidate_var_list,out_path=False):
+    '''
+    :param civ_list: List of InfoValue Class instances
+    :param df_train: DataFrame of training dataset
+    :param df_validation: DataFrame of validation dataset
+    :param candidate_var_list: the list of model input variable
+    :param out_path: specify the Dataframe to csv file path ,default False
+    :return: DataFrame about features stability
+    '''
     psi_dict = {}
 
     civ_var_list = [civ_list[i].var_name for i in range(len(civ_list))]
@@ -340,11 +373,8 @@ def plot_ks(pos_percent, neg_percent, file_name=None):
     '''
     pos_percent: 1-d array, cumulative positive sample percentage
     neg_percent: 1-d array, cumulative negative sample percentage
-
-    return:
-    None
+    return:None
     '''
-
     plt.plot(pos_percent, 'ro-', label="positive")
     plt.plot(neg_percent, 'go-', label="negative")
 
@@ -360,6 +390,7 @@ def plot_ks(pos_percent, neg_percent, file_name=None):
         plt.show()
 
     plt.close()
+
 
 def compute_ks_gini(target, predict_proba, segment_cnt=100, plot=False):
     '''

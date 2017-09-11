@@ -18,24 +18,24 @@ class config:
 
     def load_file(self,config_path,data_path):
         self.config = pd.read_csv(config_path)
-        # 指定变量类型
+        # specify variable dtypes
         self.variable_type = self.config[['var_name', 'var_dtype']]
         self.variable_type = self.variable_type.rename(columns={'var_name': 'v_name', 'var_dtype': 'v_type'})
         self.variable_type = self.variable_type.set_index(['v_name'])
 
-        # 加载训练数据
+        # load dataset train
         self.dataset_train = pd.read_csv(data_path)
         self.dataset_train.columns = [col.split('.')[-1] for col in self.dataset_train.columns]
 
-        # 待分箱处理的变量列表
+        # specify the list of continuous variable to be splitted into bin
         self.bin_var_list = self.config[self.config['is_tobe_bin'] == 1]['var_name']
-
+        # specify the list of discrete variable to be merged into supper classes
         self.discrete_var_list = self.config[(self.config['is_candidate'] == 1) & (self.config['var_dtype'] == 'object')]['var_name']
 
-        # 入模变量
+        # specify the list of model input variable
         self.candidate_var_list = self.config[self.config['is_candidate'] == 1]['var_name']
 
-        # 指定全局变量
+        # specify some other global variables about the training dataset
         self.dataset_len = len(self.dataset_train)
         self.min_sample = int(self.dataset_len * 0.05)
         self.global_bt = sum(self.dataset_train['target'])
