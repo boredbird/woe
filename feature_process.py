@@ -409,7 +409,8 @@ def proc_woe_discrete(df,var,global_bt,global_gt,min_sample):
     :param min_sample:
     :return:
     '''
-    print '-------- process discrete variable:', var, '--------'
+    s = 'process discrete variable:'+str(var)
+    print s.center(60, '-')
     div = DisInfoValue()
     div.var_name = var
     rdict = {}
@@ -472,7 +473,8 @@ def proc_woe_continuous(df,var,global_bt,global_gt,min_sample):
     :param min_sample:
     :return:
     '''
-    print '-------- process continuous variable:',var,'--------'
+    s = 'process continuous variable:'+str(var)
+    print s.center(60, '-')
     iv_tree = binning_data_split(df, var,global_bt,global_gt,min_sample,iv=0)
 
     # Traversal tree, get the segmentation point
