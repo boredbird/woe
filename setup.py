@@ -4,25 +4,24 @@ __author__ = 'boredbird'
 from setuptools import setup, find_packages
 
 setup(
-    name='woe',
-    version='0.0.1',
-    description=(
+    name = 'woe',
+    version = '0.0.7',
+    description = (
         'Tools for WoE Transformation mostly used in ScoreCard Model for credit rating'
     ),
-    long_description=open('README.rst').read(),
-    author='boredbird',
-    author_email='1002937942@qq.com',
-    maintainer='boredbird',
-    maintainer_email='1002937942@qq.com',
-    license='NJUPT',
-    packages=find_packages(),
-    platforms=["all"],
-    url='https://github.com/boredbird/woe',
-    classifiers=[
-        'Development Status :: 1 - Alpha',
+    long_description = open('README.rst').read(),
+    author = 'boredbird',
+    author_email = '1002937942@qq.com',
+    maintainer = 'boredbird',
+    maintainer_email = '1002937942@qq.com',
+    license = 'MIT',
+    packages = ['woe'],
+    platforms = ["all"],
+    url = 'https://github.com/boredbird/woe',
+    classifiers = [
         'Operating System :: OS Independent',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: NJUPT',
+        'License :: OSI Approved :: MIT License',
         'Programming Language :: Python',
         'Programming Language :: Python :: Implementation',
         'Programming Language :: Python :: 2',
