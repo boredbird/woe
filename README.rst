@@ -5,7 +5,7 @@ woe
 .. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
     :target: https://travis-ci.org/justdoit0823/pywxclient
 
-version: 0.0.7
+version: 0.0.8
 
 Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
 
@@ -59,8 +59,12 @@ Or you can write a more complex program with this `woe` package.
 
 Version Records
 ================
+woe 0.0.8 2017-09-28
 
-2017-09-19
+	* More flexible: cancel conditional restriction in function feature_process.change_feature_dtype() 
+	* Fix bug: the wrong use of deepcopy in function feature_process.woe_trans()
+	
+woe 0.0.7 2017-09-19
 
 	* Fix bug: eval.eval_feature_detail raises ValueError('arrays must all be same length')
 	* Add parameter interface: alpha specified step learning rate ,default 0.01

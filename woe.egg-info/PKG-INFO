@@ -1,0 +1,94 @@
+Metadata-Version: 1.1
+Name: woe
+Version: 0.0.8
+Summary: Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
+Home-page: https://github.com/boredbird/woe
+Author: boredbird
+Author-email: 1002937942@qq.com
+License: MIT
+Description: 
+        woe
+        ==========
+        
+        .. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
+            :target: https://travis-ci.org/justdoit0823/pywxclient
+        
+        version: 0.0.7
+        
+        Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
+        
+        Here we go:
+        
+        
+        .. code-block:: pycon
+        
+           >>> import woe.config as config
+        
+           >>> import woe.feature_process as fp
+        
+        
+        Features
+        ========
+        
+          * Split tree with IV criterion
+        
+          * Rich and plentiful model eval methods
+        
+          * Unified format and easy for output
+        
+          * Storage of IV tree for follow-up use
+        
+        
+        **woe aims to only support Python 2.7, so there is no guarantee for Python 3.**
+        
+        
+        Installation
+        ============
+        
+        We can simply use pip to install, as the following:
+        
+        .. code-block:: bash
+        
+           $ pip install woe
+        
+        or installing from git
+        
+        .. code-block:: bash
+        
+           $ pip install git+https://github.com/boredbird/woe
+        
+        
+        Examples
+        ========
+        
+        In the examples directory, there is a simple woe transformation program as tutorials.
+        
+        Or you can write a more complex program with this `woe` package.
+        
+        Version Records
+        ================
+        woe 0.0.8 2017-09-28
+        
+        	* More flexible: cancel conditional restriction in function feature_process.change_feature_dtype() 
+        	* Fix bug: the wrong use of deepcopy in function feature_process.woe_trans()
+        	
+        woe 0.0.7 2017-09-19
+        
+        	* Fix bug: eval.eval_feature_detail raises ValueError('arrays must all be same length')
+        	* Add parameter interface: alpha specified step learning rate ,default 0.01
+        
+        How to Contribute
+        =================
+        
+        Email me,1002937942@qq.com.
+        
+Keywords: math,finance,scorecard,woe,iv
+Platform: all
+Classifier: Operating System :: OS Independent
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: Implementation
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Topic :: Software Development :: Libraries

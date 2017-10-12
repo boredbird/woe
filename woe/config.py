@@ -41,6 +41,15 @@ class config:
         self.global_bt = sum(self.dataset_train['target'])
         self.global_gt = len(self.dataset_train) - sum(self.dataset_train['target'])
 
+    def change_config_var_dtype(self,var_name,type,inplace_file=True):
+        if type in ['object','string','int64','uint8','float64','bool1','bool2','dates','category']:
+            self.variable_type.loc[var_name,'v_type'] = type
+        else:
+            raise KeyError,"Invalid dtype specified! "
+
+
+
+
 
 
 

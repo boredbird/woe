@@ -3,6 +3,7 @@ __author__ = 'boredbird'
 import numpy as np
 from woe.config import  *
 from collections import namedtuple
+import copy
 
 class node:
     '''Tree Node Class
@@ -65,22 +66,17 @@ def change_feature_dtype(df,variable_type):
     :param variable_type: the DataFrame about variables dtypes
     :return: None
     '''
-    if len(df.columns) == variable_type.shape[0]:
-        s = 'Changing Feature Dtypes'
-        print s.center(60,'-')
-        for vname in df.columns:
-            try:
-                df[vname] = df[vname].astype(variable_type.loc[vname,'v_type'])
-                print vname,' '*(40-len(vname)),'{0: >10}'.format(variable_type.loc[vname,'v_type'])
-            except Exception:
-                print '[error]',vname
+    s = 'Changing Feature Dtypes'
+    print s.center(60,'-')
+    for vname in df.columns:
+        try:
+            df[vname] = df[vname].astype(variable_type.loc[vname,'v_type'])
+            print vname,' '*(40-len(vname)),'{0: >10}'.format(variable_type.loc[vname,'v_type'])
+        except Exception:
+            print '[error]',vname
 
-        s = 'Variable Dtypes Have Been Specified'
-        print s.center(60,'-')
-    else:
-        print len(df.columns)
-        print variable_type.shape[0]
-        raise ValueError("the colums num of dataset_train and varibale_type is not equal")
+    s = 'Variable Dtypes Have Been Specified'
+    print s.center(60,'-')
 
     return
 
@@ -102,11 +98,11 @@ def check_point(df,var,split,min_sample):
         # Try the left section of the first split point partition;
         # If not meet the conditions then the split point will be removed
         pdf = df[df[var] <= split[0]]
-        if (len(pdf) < min_sample) or (len(set(pdf['target']))<=1):
+        if (len(pdf) < min_sample) or (len(np.unique(pdf['target']))<=1):
             new_split.pop()
         for i in range(0,len(split)-1):
             pdf = df[(df[var] > split[i]) & (df[var] <= split[i+1])]
-            if (len(pdf) < min_sample) or (len(set(pdf['target']))<=1):
+            if (len(pdf) < min_sample) or (len(np.unique(pdf['target']))<=1):
                 continue
             else:
                 new_split.append(split[i+1])
@@ -115,7 +111,7 @@ def check_point(df,var,split,min_sample):
         if (len(df[df[var] > split[len(split)-1]])< min_sample) & (len(new_split)>1):
             new_split.pop()
         #If the remaining samples have only a positive or negative target then remove the last one
-        if len(set(df[df[var] > split[len(split)-1]]['target']))<=1 and len(new_split)>1:
+        if len(np.unique(df[df[var] > split[len(split)-1]]['target']))<=1 and len(new_split)>1:
             new_split.pop()
 
         #If the split list has only one value, and no smaller than this value
@@ -224,8 +220,8 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     woei, ivi = gd.woei,gd.ivi
     ivi = ivi.values[0]
 
-    if len(set(df[var])) <=8:
-        split = list(set(df[var]))
+    if len(np.unique(df[var])) <=8:
+        split = list(np.unique(df[var]))
         split.sort()
         #Segmentation point checking and processing
         split = check_point(df, var, split, min_sample)
@@ -233,11 +229,11 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
         iv_var.split_list = split
         return node(split_point=split,iv=ivi)
 
-    percent_value = list(set(np.percentile(df[var], range(100))))
+    percent_value = list(np.unique(np.percentile(df[var], range(100))))
     percent_value.sort()
 
     if len(percent_value) <=2:
-        iv_var.split_list = list(set(percent_value)).sort()
+        iv_var.split_list = list(np.unique(percent_value)).sort()
         return node(split_point=percent_value,iv=ivi)
 
     # A sentry that attempts to split the current node
@@ -284,7 +280,7 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
             right = binning_data_split(bestSplit_dataset_r,var,global_bt,global_gt,min_sample,alpha=0.01)
 
         # Determine whether the left node satisfies the segmentation prerequisite
-        if len(bestSplit_dataset_l) < min_sample or len(set(bestSplit_dataset_l['target'])) == 1:
+        if len(bestSplit_dataset_l) < min_sample or len(np.unique(bestSplit_dataset_l['target'])) == 1:
             presplit_left.iv = bestSplit_ivl
             left = presplit_left
         else:
@@ -369,27 +365,20 @@ def format_iv_split(df,var,split_list,global_bt,global_gt):
 
 
 def woe_trans(dvar,civ):
-    '''
-    replace the var value with the given woe value
-    :param dvar: dataset Series
-    :param civ: InfoValue instance
-    :return: transformed Series
-    '''
-    print 'WoE Transformation:','{0: >40}'.format(civ.var_name)
+    # replace the var value with the given woe value
+    var = copy.deepcopy(dvar)
     if not civ.is_discrete:
-        var = dvar[:]
         if len(civ.woe_list)>1:
             split_list = []
             split_list.append(float("-inf"))
             split_list.extend([i for i in civ.split_list])
             split_list.append(float("inf"))
 
-            for i in range(len(split_list)-2):
-                var[(var > split_list[i]) & (var <= split_list[i+1])] = civ.woe_list[i]
+            for i in range(len(civ.woe_list)):
+                var[(dvar > split_list[i]) & (dvar <= split_list[i+1])] = civ.woe_list[i]
         else:
             var[:] = civ.woe_list[0]
     else:
-        var = dvar[:]
         split_map = {}
         for i in range(len(civ.split_list)):
             for j in range(len(civ.split_list[i])):
@@ -416,7 +405,7 @@ def proc_woe_discrete(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     rdict = {}
     cpvar = df[var]
 
-    for var_value in set(df[var]):
+    for var_value in np.unique(df[var]):
         # Here come with a '==',in case type error you must do Nan filling process firstly
         df_temp = df[df[var] == var_value]
         gd = calulate_iv(df_temp,var,global_bt,global_gt)
@@ -433,7 +422,7 @@ def proc_woe_discrete(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     # Traversal tree, get the segmentation point
     split_list = []
     search(iv_tree, split_list)
-    split_list = list(set([1.0 * x for x in split_list if x is not None]))
+    split_list = list(np.unique([1.0 * x for x in split_list if x is not None]))
     split_list.sort()
 
     # Segmentation point checking and processing
@@ -480,7 +469,7 @@ def proc_woe_continuous(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     # Traversal tree, get the segmentation point
     split_list = []
     search(iv_tree, split_list)
-    split_list = list(set([1.0 * x for x in split_list if x is not None]))
+    split_list = list(np.unique([1.0 * x for x in split_list if x is not None]))
     split_list.sort()
 
     # Segmentation point checking and processing

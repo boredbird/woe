@@ -36,6 +36,9 @@ def eval_feature_detail(Info_Value_list,out_path=False):
             ,'negative_sample_num','sub_total_num_percentage','positive_rate_in_sub_total'
             ,'woe_list','iv_list','iv']
         rowcnt = len(rst[kk].iv_list)
+        if rowcnt < len(split_list):
+            split_list = split_list[:rowcnt]
+
         var_name = [rst[kk].var_name] * rowcnt
         iv = [rst[kk].iv] * rowcnt
         iv_list = rst[kk].iv_list

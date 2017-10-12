@@ -1,0 +1,17 @@
+LICENSE.txt
+MANIFEST.in
+README.rst
+setup.py
+examples/HereWeGo.py
+examples/README.rst
+examples/UCI_Credit_Card.csv
+examples/config.csv
+woe/__init__.py
+woe/config.py
+woe/eval.py
+woe/feature_process.py
+woe.egg-info/PKG-INFO
+woe.egg-info/SOURCES.txt
+woe.egg-info/dependency_links.txt
+woe.egg-info/requires.txt
+woe.egg-info/top_level.txt
