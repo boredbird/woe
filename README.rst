@@ -59,6 +59,11 @@ Or you can write a more complex program with this `woe` package.
 
 Version Records
 ================
+woe 0.0.9 2017-11-21
+
+	* Add module : GridSearch for the search of optimal hyper parametric C in LogisticRegression
+	* Code refactoring: function compute_ks and plot_ks
+
 woe 0.0.8 2017-09-28
 
 	* More flexible: cancel conditional restriction in function feature_process.change_feature_dtype() 
