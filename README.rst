@@ -4,12 +4,10 @@ woe
 
 .. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
 	:target: https://travis-ci.org/justdoit0823/pywxclient
-
-.. |Python27| image:: https://img.shields.io/badge/python-2.7-blue.svg
-.. _Python27: https://pypi.python.org/pypi/woe/
-
-.. |PyPi| image:: https://badge.fury.io/py/scikit-learn.svg
-.. _PyPi: https://pypi.python.org/pypi/woe/
+	.. |Python27| image:: https://img.shields.io/badge/python-2.7-blue.svg
+	.. _Python27: https://pypi.python.org/pypi/woe/
+	.. |PyPi| image:: https://badge.fury.io/py/scikit-learn.svg
+	.. _PyPi: https://pypi.python.org/pypi/woe/
 
 version: 0.1.0
 
@@ -47,37 +45,38 @@ Features
 
 **woe** module function tree
 =======
-|- __init__
-|- config.py 
-|   |-- config
-|   	|-- __init__
-|		|-- change_config_var_dtype()
-|		|-- load_file()
-|- eval.py 
-|   |-- compute_ks()
-|   |-- eval_data_summary()
-|   |-- eval_feature_detail()
-|   |-- eval_feature_stability()
-|   |-- eval_feature_summary()
-|   |-- eval_model_stability()
-|   |-- eval_model_summary()
-|   |-- eval_segment_metrics()
-|   |-- plot_ks()
-|   |-- wald_test()
-|- feature_process.py 
-|   |-- binning_data_split()
-|   |-- calculate_iv_split()
-|   |-- calulate_iv()
-|   |-- change_feature_dtype()
-|   |-- check_point()
-|   |-- fillna()
-|   |-- format_iv_split()
-|   |-- proc_woe_continuous()
-|   |-- proc_woe_discrete()
-|   |-- search()
-|   |-- woe_trans()
-|- GridSearch.py 
-|   |-- grid_search_lr_c()
+
+	|- __init__
+	|- config.py 
+	|   |-- config
+	|   	|-- __init__
+	|		|-- change_config_var_dtype()
+	|		|-- load_file()
+	|- eval.py 
+	|   |-- compute_ks()
+	|   |-- eval_data_summary()
+	|   |-- eval_feature_detail()
+	|   |-- eval_feature_stability()
+	|   |-- eval_feature_summary()
+	|   |-- eval_model_stability()
+	|   |-- eval_model_summary()
+	|   |-- eval_segment_metrics()
+	|   |-- plot_ks()
+	|   |-- wald_test()
+	|- feature_process.py 
+	|   |-- binning_data_split()
+	|   |-- calculate_iv_split()
+	|   |-- calulate_iv()
+	|   |-- change_feature_dtype()
+	|   |-- check_point()
+	|   |-- fillna()
+	|   |-- format_iv_split()
+	|   |-- proc_woe_continuous()
+	|   |-- proc_woe_discrete()
+	|   |-- search()
+	|   |-- woe_trans()
+	|- GridSearch.py 
+	|   |-- grid_search_lr_c()
 
 Examples
 ========
