@@ -11,14 +11,13 @@ from woe.eval import  compute_ks
 """
 Search for optimal hyper parametric C in LogisticRegression
 """
-def grid_search_lr_c(X_train,y_train,cs,df_coef_path=False
+def grid_search_lr_c(X_train,y_train,df_coef_path=False
                      ,pic_coefpath_title='Logistic Regression Path',pic_coefpath=False
                      ,pic_performance_title='Logistic Regression Performance',pic_performance=False):
     """
     grid search optimal hyper parameters c with the best ks performance
     :param X_train: features dataframe
     :param y_train: target
-    :param cs: list of regularization parameter c
     :param df_coef_path: the file path for logistic regression coefficient dataframe
     :param pic_coefpath_title: the pic title for coefficient path picture
     :param pic_coefpath: the file path for coefficient path picture
@@ -28,7 +27,7 @@ def grid_search_lr_c(X_train,y_train,cs,df_coef_path=False
     """
     # init a LogisticRegression model
     clf_l1_LR = LogisticRegression(C=0.1, penalty='l1', tol=0.01,class_weight='balanced')
-    # cs = l1_min_c(X_train, y_train, loss='log') * np.logspace(0, 9,200)
+    cs = l1_min_c(X_train, y_train, loss='log') * np.logspace(0, 3)
 
     print("Computing regularization path ...")
     start = datetime.now()

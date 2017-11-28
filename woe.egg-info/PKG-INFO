@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: woe
-Version: 0.0.8
+Version: 0.0.9
 Summary: Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
 Home-page: https://github.com/boredbird/woe
 Author: boredbird
@@ -13,7 +13,7 @@ Description:
         .. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
             :target: https://travis-ci.org/justdoit0823/pywxclient
         
-        version: 0.0.7
+        version: 0.0.8
         
         Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
         
@@ -67,6 +67,11 @@ Description:
         
         Version Records
         ================
+        woe 0.0.9 2017-11-21
+        
+        	* Add module : GridSearch for the search of optimal hyper parametric C in LogisticRegression
+        	* Code refactoring: function compute_ks and plot_ks
+        
         woe 0.0.8 2017-09-28
         
         	* More flexible: cancel conditional restriction in function feature_process.change_feature_dtype() 

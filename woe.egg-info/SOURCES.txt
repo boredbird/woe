@@ -6,6 +6,7 @@ examples/HereWeGo.py
 examples/README.rst
 examples/UCI_Credit_Card.csv
 examples/config.csv
+woe/GridSearch.py
 woe/__init__.py
 woe/config.py
 woe/eval.py

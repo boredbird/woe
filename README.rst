@@ -3,36 +3,17 @@ woe
 ==========
 
 .. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
-    :target: https://travis-ci.org/justdoit0823/pywxclient
+	:target: https://travis-ci.org/justdoit0823/pywxclient
 
-version: 0.0.8
+.. |Python27| image:: https://img.shields.io/badge/python-2.7-blue.svg
+.. _Python27: https://pypi.python.org/pypi/woe/
+
+.. |PyPi| image:: https://badge.fury.io/py/scikit-learn.svg
+.. _PyPi: https://pypi.python.org/pypi/woe/
+
+version: 0.1.0
 
 Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
-
-Here we go:
-
-
-.. code-block:: pycon
-
-   >>> import woe.config as config
-
-   >>> import woe.feature_process as fp
-
-
-Features
-========
-
-  * Split tree with IV criterion
-
-  * Rich and plentiful model eval methods
-
-  * Unified format and easy for output
-
-  * Storage of IV tree for follow-up use
-
-
-**woe aims to only support Python 2.7, so there is no guarantee for Python 3.**
-
 
 Installation
 ============
@@ -50,6 +31,54 @@ or installing from git
    $ pip install git+https://github.com/boredbird/woe
 
 
+Features
+========
+
+  * Split tree with IV criterion
+
+  * Rich and plentiful model eval methods
+
+  * Unified format and easy for output
+
+  * Storage of IV tree for follow-up use
+
+
+**woe aims to only support Python 2.7, so there is no guarantee for Python 3.**
+
+**woe** module function tree
+=======
+|- __init__
+|- config.py 
+|   |-- config
+|   	|-- __init__
+|		|-- change_config_var_dtype()
+|		|-- load_file()
+|- eval.py 
+|   |-- compute_ks()
+|   |-- eval_data_summary()
+|   |-- eval_feature_detail()
+|   |-- eval_feature_stability()
+|   |-- eval_feature_summary()
+|   |-- eval_model_stability()
+|   |-- eval_model_summary()
+|   |-- eval_segment_metrics()
+|   |-- plot_ks()
+|   |-- wald_test()
+|- feature_process.py 
+|   |-- binning_data_split()
+|   |-- calculate_iv_split()
+|   |-- calulate_iv()
+|   |-- change_feature_dtype()
+|   |-- check_point()
+|   |-- fillna()
+|   |-- format_iv_split()
+|   |-- proc_woe_continuous()
+|   |-- proc_woe_discrete()
+|   |-- search()
+|   |-- woe_trans()
+|- GridSearch.py 
+|   |-- grid_search_lr_c()
+
 Examples
 ========
 
@@ -59,6 +88,17 @@ Or you can write a more complex program with this `woe` package.
 
 Version Records
 ================
+woe 0.1.0 2017-11-28
+
+	* woe.config.load_file(): change param data_path to be optional
+	* woe.eval.eval_feature_stability(): fix bug : psi_dict['stability_index'] computation error
+	* woe.feature_process.change_feature_dtype(): add friendly tips when encounter a error
+	* woe.feature_process.calulate_iv(): refactor the code
+	* woe.feature_process.calculate_iv_split(): refactor the code
+	* woe.feature_process.binning_data_split(): reduce the number of len() function calls with __len__() and shape attributes;replace namedtuple with dict
+	* woe.feature_process.fillna(): new added function to fill null value
+	* woe.GridSearch.grid_search_lr_c(): list of regularization parameter c specified inside the function is changed to the user specified
+	
 woe 0.0.9 2017-11-21
 
 	* Add module : GridSearch for the search of optimal hyper parametric C in LogisticRegression

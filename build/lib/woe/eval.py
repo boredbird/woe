@@ -4,6 +4,19 @@ import pandas as pd
 import numpy as np
 import scipy
 import matplotlib.pyplot as plt
+from scipy.stats import ks_2samp
+
+def compute_ks(proba,target):
+    '''
+    target: numpy array of shape (1,)
+    proba: numpy array of shape (1,), predicted probability of the sample being positive
+    returns:
+    ks: float, ks score estimation
+    '''
+    get_ks = lambda proba, target: ks_2samp(proba[target == 1], proba[target != 1]).statistic
+
+    return get_ks(proba, target)
+
 
 def eval_feature_detail(Info_Value_list,out_path=False):
     """
@@ -372,92 +385,143 @@ def eval_feature_stability(civ_list, df_train, df_validation,candidate_var_list,
     return psi_df
 
 
-def plot_ks(pos_percent, neg_percent, file_name=None):
-    '''
-    pos_percent: 1-d array, cumulative positive sample percentage
-    neg_percent: 1-d array, cumulative negative sample percentage
-    return:None
-    '''
-    plt.plot(pos_percent, 'ro-', label="positive")
-    plt.plot(neg_percent, 'go-', label="negative")
+def plot_ks(proba,target,axistype='pct',out_path=False):
+    """
+    plot k-s figure
+    :param proba: 1-d array,prediction probability values
+    :param target: 1-d array,the list of actual target value
+    :param axistype: specify x axis :'axistype' must be either 'pct' (sample percent) or 'proba' (prediction probability)
+    :param out_path: specify the file path to store ks plot figure,default False
+    :return: DataFrame, figure summary
+    """
+    assert axistype in ['pct','proba'] , "KS Plot TypeError: Attribute 'axistype' must be either 'pct' or 'proba' !"
 
-    plt.grid(True)
-    plt.legend(loc=0)
-    plt.xlabel("population")
-    plt.ylabel("cumulative percentage")
+    a = pd.DataFrame(np.array([proba,target]).T,columns=['proba','target'])
+    a.sort_values(by='proba',ascending=False,inplace=True)
+    a['sum_Times']=a['target'].cumsum()
+    total_1 = a['target'].sum()
+    total_0 = len(a) - a['target'].sum()
 
-    if file_name is not None:
+    a['temp'] = 1
+    a['Times']=a['temp'].cumsum()
+    a['cdf1'] = a['sum_Times']/total_1
+    a['cdf0'] = (a['Times'] - a['sum_Times'])/total_0
+    a['ks'] = a['cdf1'] - a['cdf0']
+    a['percent'] = a['Times']*1.0/len(a)
+
+    idx = np.argmax(a['ks'])
+    # print a.loc[idx]
+
+    if axistype == 'pct':
+        '''
+        KS曲线,横轴为按照输出的概率值排序后的观察样本比例
+        '''
+        plt.figure()
+        plt.plot(a['percent'],a['cdf1'], label="CDF_positive")
+        plt.plot(a['percent'],a['cdf0'],label="CDF_negative")
+        plt.plot(a['percent'],a['ks'],label="K-S")
+
+        sx = np.linspace(0,1,10)
+        sy = sx
+        plt.plot(sx,sy,linestyle='--',color='darkgrey',linewidth=1.2)
+
+        plt.legend()
+        plt.grid(True)
+        ymin, ymax = plt.ylim()
+        plt.xlabel('Sample percent')
+        plt.ylabel('Cumulative probability')
+        plt.title('Model Evaluation Index K-S')
+        plt.axis('tight')
+
+        # 虚线
+        t = a.loc[idx]['percent']
+        yb = round(a.loc[idx]['cdf1'],4)
+        yg = round(a.loc[idx]['cdf0'],4)
+
+        plt.plot([t,t],[yb,yg], color ='red', linewidth=1.4, linestyle="--")
+        plt.scatter([t,],[yb,], 20, color ='dodgerblue')
+        plt.annotate(r'$recall_p=%s$' % round(a.loc[idx]['cdf1'],4), xy=(t, yb), xycoords='data', xytext=(+10, -5),
+                     textcoords='offset points', fontsize=8,
+                     arrowprops=dict(arrowstyle='->', connectionstyle="arc3,rad=.1"))
+
+        plt.scatter([t,],[yg,], 20, color ='darkorange')
+        plt.annotate(r'$recall_n=%s$' % round(a.loc[idx]['cdf0'],4), xy=(t, yg), xycoords='data', xytext=(+10, -10),
+                     textcoords='offset points', fontsize=8,
+                     arrowprops=dict(arrowstyle='->', connectionstyle="arc3,rad=.1"))
+        # K-S曲线峰值
+        plt.scatter([t,],[a.loc[idx]['ks'],], 20, color ='limegreen')
+        plt.annotate(r'$ks=%s,p=%s$' % (round(a.loc[idx]['ks'],4)
+                                        ,round(a.loc[idx]['proba'],4))
+                     , xy=(a.loc[idx]['percent'], a.loc[idx]['ks'])
+                     , xycoords='data'
+                     , xytext=(+15, -15),
+                     textcoords='offset points'
+                     , fontsize=8
+                     ,arrowprops=dict(arrowstyle='->', connectionstyle="arc3,rad=.1"))
+        plt.annotate(r'$percent=%s,cnt=%s$' % (round(a.loc[idx]['percent'],4)
+                                               ,round(a.loc[idx]['Times'],0))
+                     , xy=(a.loc[idx]['percent'], a.loc[idx]['ks'])
+                     , xycoords='data'
+                     , xytext=(+25, -25),
+                     textcoords='offset points'
+                     , fontsize=8
+                     )
+
+    else:
+        '''
+        改变横轴,横轴为模型输出的概率值
+        '''
+        plt.figure()
+        plt.grid(True)
+        plt.plot(1-a['proba'],a['cdf1'], label="CDF_bad")
+        plt.plot(1-a['proba'],a['cdf0'],label="CDF_good")
+        plt.plot(1-a['proba'],a['ks'],label="ks")
+
+        plt.legend()
+        ymin, ymax = plt.ylim()
+        plt.xlabel('1-[Predicted probability]')
+        plt.ylabel('Cumulative probability')
+        plt.title('Model Evaluation Index K-S')
+        plt.axis('tight')
+        plt.show()
+        # 虚线
+        t = 1 - a.loc[idx]['proba']
+        yb = round(a.loc[idx]['cdf1'],4)
+        yg = round(a.loc[idx]['cdf0'],4)
+
+        plt.plot([t,t],[yb,yg], color ='red', linewidth=1.4, linestyle="--")
+        plt.scatter([t,],[yb,], 20, color ='dodgerblue')
+        plt.annotate(r'$recall_p=%s$' % round(a.loc[idx]['cdf1'],4), xy=(t, yb), xycoords='data', xytext=(+10, -5),
+                     textcoords='offset points', fontsize=8,
+                     arrowprops=dict(arrowstyle='->', connectionstyle="arc3,rad=.1"))
+
+        plt.scatter([t,],[yg,], 20, color ='darkorange')
+        plt.annotate(r'$recall_n=%s$' % round(a.loc[idx]['cdf0'],4), xy=(t, yg), xycoords='data', xytext=(+10, -10),
+                     textcoords='offset points', fontsize=8,
+                     arrowprops=dict(arrowstyle='->', connectionstyle="arc3,rad=.1"))
+        # K-S曲线峰值
+        plt.scatter([t,],[a.loc[idx]['ks'],], 20, color ='limegreen')
+        plt.annotate(r'$ks=%s,p=%s$' % (round(a.loc[idx]['ks'],4)
+                                        ,round(a.loc[idx]['proba'],4))
+                     , xy=(t, a.loc[idx]['ks'])
+                     , xycoords='data'
+                     , xytext=(+15, -15),
+                     textcoords='offset points'
+                     , fontsize=8
+                     ,arrowprops=dict(arrowstyle='->', connectionstyle="arc3,rad=.1"))
+        plt.annotate(r'$percent=%s,cnt=%s$' % (round(a.loc[idx]['percent'],4)
+                                               ,round(a.loc[idx]['Times'],0))
+                     , xy=(t, a.loc[idx]['ks'])
+                     , xycoords='data'
+                     , xytext=(+25, -25),
+                     textcoords='offset points'
+                     , fontsize=8
+                     )
+
+    if out_path:
+        file_name = out_path if isinstance(out_path, str) else None
         plt.savefig(file_name)
-
     else:
         plt.show()
 
-    plt.close()
-
-
-def compute_ks_gini(target, predict_proba, segment_cnt=100, plot=False):
-    '''
-    target: numpy array of shape (1,)
-    predict_proba: numpy array of shape (1,), predicted probability of the sample being positive
-    segment_cnt: segment count for computing KS score, more segments result in more accurate estimate of KS score, default is 100
-    plot: boolean or string, whether to draw the KS plot, save to a file if plot is string of the file name
-
-    returns:
-    gini: float, gini score estimation
-    ks: float, ks score estimation
-    '''
-
-    proba_descend_idx = np.argsort(predict_proba)
-    proba_descend_idx = proba_descend_idx[::-1]
-
-    one_segment_sample_num = int(len(predict_proba) / segment_cnt)
-    grp_idx = 1
-    start_idx = 0
-    total_sample_cnt = len(predict_proba)
-    total_positive_sample_cnt = target.sum()
-    total_negative_sample_cnt = total_sample_cnt - total_positive_sample_cnt
-
-    cumulative_positive_percentage = 0.0
-    cumulative_negative_percentage = 0.0
-    cumulative_random_positive_percentage = 0.0
-    random_positive_percentage_step = 100.0 / segment_cnt
-    ks_pos_percent_list = list()
-    ks_neg_percent_list = list()
-    ks_score = 0.0
-    gini_a_area = 0.0
-
-    while start_idx < total_sample_cnt:
-        segment_idx_list = proba_descend_idx[start_idx: start_idx + one_segment_sample_num]
-        segment_target = target[segment_idx_list]
-
-        segment_sample_cnt = len(segment_idx_list)
-
-        segment_pos_cnt = segment_target.sum()
-        segment_neg_cnt = segment_sample_cnt - segment_pos_cnt
-
-        pos_percentage_in_total = float(segment_pos_cnt * 100) / total_positive_sample_cnt
-        neg_percentage_in_total = float(segment_neg_cnt * 100) / total_negative_sample_cnt
-
-        cumulative_positive_percentage += pos_percentage_in_total
-        cumulative_negative_percentage += neg_percentage_in_total
-
-        ks = cumulative_positive_percentage - cumulative_negative_percentage
-        ks_score = max(ks_score, ks)
-
-        cumulative_random_positive_percentage += random_positive_percentage_step
-
-        gini_a_area += (cumulative_positive_percentage - cumulative_random_positive_percentage) * (1.0 / segment_cnt)
-
-        ks_pos_percent_list.append(cumulative_positive_percentage)
-        ks_neg_percent_list.append(cumulative_negative_percentage)
-
-        grp_idx += 1
-        start_idx += one_segment_sample_num
-
-    gini_score = gini_a_area * 2
-
-    if plot:
-        file_name = plot if isinstance(plot, str) else None
-        plot_ks(ks_pos_percent_list, ks_neg_percent_list, file_name)
-
-    return (gini_score, ks_score)
+    return a.loc[idx]
