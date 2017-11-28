@@ -3,8 +3,6 @@ woe
 ==========
 .. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
 	:target: https://travis-ci.org/justdoit0823/pywxclient
-.. image:: https://img.shields.io/badge/python-2.7-blue.svg
-	.. target: https://pypi.python.org/pypi/woe/
 
 version: 0.1.0
 
@@ -41,7 +39,6 @@ Features
 **woe aims to only support Python 2.7, so there is no guarantee for Python 3.**
 
 **woe** module function tree
-
 =======
 
 .. code-block:: bash
