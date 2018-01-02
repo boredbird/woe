@@ -1,15 +1,16 @@
 
 woe
 ==========
-.. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
-	:target: https://travis-ci.org/justdoit0823/pywxclient
 
-version: 0.1.0
+.. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
+    :target: https://travis-ci.org/justdoit0823/pywxclient
+
+version: 0.1.2
 
 Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
 
 Installation
-============
+--------------------------------
 
 We can simply use pip to install, as the following:
 
@@ -39,10 +40,9 @@ Features
 **woe aims to only support Python 2.7, so there is no guarantee for Python 3.**
 
 **woe** module function tree
-=======
+============
 
 .. code-block:: bash
-
 	|- __init__
 	|- config.py 
 	|   |-- config
@@ -84,7 +84,8 @@ Or you can write a more complex program with this `woe` package.
 
 Version Records
 ================
-woe 0.1.0 2017-11-28
+
+woe 0.1.1 2017-11-28
 
 	* woe.config.load_file(): change param data_path to be optional
 	* woe.eval.eval_feature_stability(): fix bug : psi_dict['stability_index'] computation error
@@ -111,6 +112,6 @@ woe 0.0.7 2017-09-19
 	* Add parameter interface: alpha specified step learning rate ,default 0.01
 
 How to Contribute
-=================
+--------------------------------
 
 Email me,1002937942@qq.com.

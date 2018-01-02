@@ -74,6 +74,8 @@ def change_feature_dtype(df,variable_type):
             print vname,' '*(40-len(vname)),'{0: >10}'.format(variable_type.loc[vname,'v_type'])
         except Exception:
             print '[error]',vname
+            print '[original dtype] ',df.dtypes[vname],' [astype] ',variable_type.loc[vname,'v_type']
+            print '[unique value]',np.unique(df[vname])
 
     s = 'Variable Dtypes Have Been Specified'
     print s.center(60,'-')
@@ -93,25 +95,25 @@ def check_point(df,var,split,min_sample):
     :return: The split points list checked out
     """
     new_split = []
-    if split is not None and len(split)>0:
+    if split is not None and split.__len__()>0:
         new_split.append(split[0])
         # Try the left section of the first split point partition;
         # If not meet the conditions then the split point will be removed
         pdf = df[df[var] <= split[0]]
-        if (len(pdf) < min_sample) or (len(np.unique(pdf['target']))<=1):
+        if (pdf.shape[0] < min_sample) or (len(np.unique(pdf['target']))<=1):
             new_split.pop()
-        for i in range(0,len(split)-1):
+        for i in range(0,split.__len__()-1):
             pdf = df[(df[var] > split[i]) & (df[var] <= split[i+1])]
-            if (len(pdf) < min_sample) or (len(np.unique(pdf['target']))<=1):
+            if (pdf.shape[0] < min_sample) or (np.unique(pdf['target']).__len__()<=1):
                 continue
             else:
                 new_split.append(split[i+1])
 
         #If the remaining sample is too small then remove the last one
-        if (len(df[df[var] > split[len(split)-1]])< min_sample) & (len(new_split)>1):
+        if (len(df[df[var] > split[split.__len__()-1]])< min_sample) & (new_split.__len__()>1):
             new_split.pop()
         #If the remaining samples have only a positive or negative target then remove the last one
-        if len(np.unique(df[df[var] > split[len(split)-1]]['target']))<=1 and len(new_split)>1:
+        if np.unique(df[df[var] > split[split.__len__()-1]]['target']).__len__()<=1 and new_split.__len__()>1:
             new_split.pop()
 
         #If the split list has only one value, and no smaller than this value
@@ -119,9 +121,7 @@ def check_point(df,var,split,min_sample):
             new_split = split
     else:
         pass
-
     return new_split
-
 
 def calulate_iv(df,var,global_bt,global_gt):
     '''
@@ -132,41 +132,23 @@ def calulate_iv(df,var,global_bt,global_gt):
     :param global_gt:
     :return:
     '''
-    a = df.loc[:,[var,'target']]
-    b = a.groupby(['target']).count()
-    bt = global_bt
-    gt = global_gt
-    bt_sub = 0
-    gt_sub = 0
+    # a = df.groupby(['target']).count()
+    groupdetail = {}
+    bt_sub = sum(df['target'])
+    bri = (bt_sub + 0.0001)* 1.0 / global_bt
+    gt_sub = df.shape[0] - bt_sub
+    gri = (gt_sub + 0.0001)* 1.0 / global_gt
 
-    groupdetail = namedtuple('groupdetail', ['woei','ivi','sub_total_num_percentage','positive_sample_num', 'negative_sample_num', 'positive_rate_in_sub_total','negative_rate_in_sub_total'])
+    groupdetail['woei'] = np.log(bri / gri)
+    groupdetail['ivi'] = (bri - gri) * np.log(bri / gri)
+    groupdetail['sub_total_num_percentage'] = df.shape[0]*1.0/(global_bt+global_gt)
+    groupdetail['positive_sample_num'] = bt_sub
+    groupdetail['negative_sample_num'] = gt_sub
+    groupdetail['positive_rate_in_sub_total'] = bt_sub*1.0/df.shape[0]
+    groupdetail['negative_rate_in_sub_total'] = gt_sub*1.0/df.shape[0]
 
-    try:
-        bri = (b.ix[1,:]+0.0001) * 1.0 / bt
-        bt_sub = b.ix[1,:][0]
-    except Exception:
-        bri = (0 + 0.0001) * 1.0 / bt
-        bt_sub = 0
+    return groupdetail
 
-    try:
-        gri = (b.ix[0,:]+0.0001) * 1.0 / gt
-        gt_sub = b.ix[0,:][0]
-    except Exception:
-        gri = (0 + 0.0001) * 1.0 / gt
-        gt_sub = 0
-
-    woei = np.log(bri / gri)
-    ivi = (bri - gri) * woei
-
-    gd = groupdetail(woei=woei
-                     ,ivi=ivi
-                     ,sub_total_num_percentage = len(a)*1.0/(bt+gt)
-                     ,positive_sample_num=bt_sub
-                     ,negative_sample_num=gt_sub
-                     ,positive_rate_in_sub_total=bt_sub*1.0/len(a)
-                     ,negative_rate_in_sub_total=gt_sub*1.0/len(a))
-
-    return gd
 
 def calculate_iv_split(df,var,split_point,global_bt,global_gt):
     """
@@ -179,28 +161,21 @@ def calculate_iv_split(df,var,split_point,global_bt,global_gt):
     dataset_r = df[df.loc[:,var] > split_point][[var,'target']]
     dataset_l = df[df.loc[:,var] <= split_point][[var,'target']]
 
-    #calculate subset statistical frequency
-    a = dataset_r.groupby(['target', ]).count().reset_index()
-    a.rename(columns={var:'cnt'}, inplace = True)
-    r0_cnt = sum(a[a['target']==0]['cnt'])
-    r1_cnt = sum(a[a['target']==1]['cnt'])
+    r1_cnt = sum(dataset_r['target'])
+    r0_cnt = dataset_r.shape[0] - r1_cnt
 
-    b = dataset_l.groupby(['target', ]).count().reset_index()
-    b.rename(columns={var:'cnt'}, inplace = True)
-    l0_cnt = sum(b[b['target']==0]['cnt'])
-    l1_cnt = sum(b[b['target']==1]['cnt'])
+    l1_cnt = sum(dataset_l['target'])
+    l0_cnt = dataset_l.shape[0] - l1_cnt
 
     if r0_cnt == 0 or r1_cnt == 0 or l0_cnt == 0 or l1_cnt ==0:
         return 0,0,0,dataset_l,dataset_r,0,0
 
-    bt = global_bt
-    gt = global_gt
-    lbr = l1_cnt*1.0/bt
-    lgr = l0_cnt*1.0/gt
+    lbr = (l1_cnt+ 0.0001)*1.0/global_bt
+    lgr = (l0_cnt+ 0.0001)*1.0/global_gt
     woel = np.log(lbr/lgr)
     ivl = (lbr-lgr)*woel
-    rbr = r1_cnt*1.0/bt
-    rgr = r0_cnt*1.0/gt
+    rbr = (r1_cnt+ 0.0001)*1.0/global_bt
+    rgr = (r0_cnt+ 0.0001)*1.0/global_gt
     woer = np.log(rbr/rgr)
     ivr = (rbr-rgr)*woer
     iv = ivl+ivr
@@ -217,10 +192,9 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     # Calculates the IV of the current node before splitted
     gd = calulate_iv(df, var,global_bt,global_gt)
 
-    woei, ivi = gd.woei,gd.ivi
-    ivi = ivi.values[0]
+    woei, ivi = gd['woei'],gd['ivi']
 
-    if len(np.unique(df[var])) <=8:
+    if np.unique(df[var]).__len__() <=8:
         split = list(np.unique(df[var]))
         split.sort()
         #Segmentation point checking and processing
@@ -232,7 +206,7 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     percent_value = list(np.unique(np.percentile(df[var], range(100))))
     percent_value.sort()
 
-    if len(percent_value) <=2:
+    if percent_value.__len__() <=2:
         iv_var.split_list = list(np.unique(percent_value)).sort()
         return node(split_point=percent_value,iv=ivi)
 
@@ -244,14 +218,12 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     bestSplit_ivl = 0
     bestSplit_ivr = 0
     bestSplit_point = []
-    bestSplit_dataset_l = pd.DataFrame()
-    bestSplit_dataset_r = pd.DataFrame()
 
     #remove max value and min value in case dataset_r  or dataset_l will be null
-    for point in percent_value[0:len(percent_value)-1]:
+    for point in percent_value[0:percent_value.__len__()-1]:
         # If there is only a sample or a negative sample, skip
-        if len(set(df[df[var] > point]['target'])) == 1 or len(set(df[df[var] <= point]['target'])) == 1\
-                or len(df[df[var] > point]) < min_sample or len(df[df[var] <= point]) < min_sample :
+        if set(df[df[var] > point]['target']).__len__() == 1 or set(df[df[var] <= point]['target']).__len__() == 1\
+                or df[df[var] > point].shape[0] < min_sample or df[df[var] <= point].shape[0] < min_sample :
             continue
 
         woel, woer, iv, dataset_l, dataset_r, ivl, ivr = calculate_iv_split(df,var,point,global_bt,global_gt)
@@ -268,19 +240,19 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
 
     # If the IV after division is greater than the IV value before the current segmentation, the segmentation is valid and recursive
     # specified step learning rate 0.01
-    if bestSplit_iv > ivi*(1+alpha) and len(bestSplit_dataset_r) > min_sample and len(bestSplit_dataset_l) > min_sample:
+    if bestSplit_iv > ivi*(1+alpha) and bestSplit_dataset_r.shape[0] > min_sample and bestSplit_dataset_l.shape[0] > min_sample:
         presplit_right = node()
         presplit_left = node()
 
         # Determine whether the right node satisfies the segmentation prerequisite
-        if len(bestSplit_dataset_r) < min_sample or len(set(bestSplit_dataset_r['target'])) == 1:
+        if bestSplit_dataset_r.shape[0] < min_sample or set(bestSplit_dataset_r['target']).__len__() == 1:
             presplit_right.iv = bestSplit_ivr
             right = presplit_right
         else:
             right = binning_data_split(bestSplit_dataset_r,var,global_bt,global_gt,min_sample,alpha=0.01)
 
         # Determine whether the left node satisfies the segmentation prerequisite
-        if len(bestSplit_dataset_l) < min_sample or len(np.unique(bestSplit_dataset_l['target'])) == 1:
+        if bestSplit_dataset_l.shape[0] < min_sample or np.unique(bestSplit_dataset_l['target']).__len__() == 1:
             presplit_left.iv = bestSplit_ivl
             left = presplit_left
         else:
@@ -334,31 +306,31 @@ def format_iv_split(df,var,split_list,global_bt,global_gt):
     civ.sub_total_num_percentage = []
     civ.positive_rate_in_sub_total = []
 
-    for i in range(0, len(split_list)):
+    for i in range(0, split_list.__len__()):
         dfi = dfcp[dfcp[var] <= split_list[i]]
         dfcp = dfcp[dfcp[var] > split_list[i]]
         gd = calulate_iv(dfi, var,global_bt,global_gt)
-        woei, ivi = gd.woei,gd.ivi
-        civ.woe_list.extend(woei)
-        civ.iv_list.extend(ivi)
-        civ.sub_total_sample_num.append(len(dfi))
-        civ.positive_sample_num.append(gd.positive_sample_num)
-        civ.negative_sample_num.append(gd.negative_sample_num)
-        civ.sub_total_num_percentage.append(gd.sub_total_num_percentage)
-        civ.positive_rate_in_sub_total.append(gd.positive_rate_in_sub_total)
-        civ.negative_rate_in_sub_total.append(gd.negative_rate_in_sub_total)
+        woei, ivi = gd['woei'],gd['ivi']
+        civ.woe_list.append(woei)
+        civ.iv_list.append(ivi)
+        civ.sub_total_sample_num.append(dfi.shape[0])
+        civ.positive_sample_num.append(gd['positive_sample_num'])
+        civ.negative_sample_num.append(gd['negative_sample_num'])
+        civ.sub_total_num_percentage.append(gd['sub_total_num_percentage'])
+        civ.positive_rate_in_sub_total.append(gd['positive_rate_in_sub_total'])
+        civ.negative_rate_in_sub_total.append(gd['negative_rate_in_sub_total'])
 
-    if len(dfcp)>0:
+    if dfcp.shape[0]>0:
         gd = calulate_iv(dfcp, var,global_bt,global_gt)
-        woei, ivi = gd.woei,gd.ivi
-        civ.woe_list.extend(woei)
-        civ.iv_list.extend(ivi)
-        civ.sub_total_sample_num.append(len(dfcp))
-        civ.positive_sample_num.append(gd.positive_sample_num)
-        civ.negative_sample_num.append(gd.negative_sample_num)
-        civ.sub_total_num_percentage.append(gd.sub_total_num_percentage)
-        civ.positive_rate_in_sub_total.append(gd.positive_rate_in_sub_total)
-        civ.negative_rate_in_sub_total.append(gd.negative_rate_in_sub_total)
+        woei, ivi = gd['woei'],gd['ivi']
+        civ.woe_list.append(woei)
+        civ.iv_list.append(ivi)
+        civ.sub_total_sample_num.append(dfcp.shape[0])
+        civ.positive_sample_num.append(gd['positive_sample_num'])
+        civ.negative_sample_num.append(gd['negative_sample_num'])
+        civ.sub_total_num_percentage.append(gd['sub_total_num_percentage'])
+        civ.positive_rate_in_sub_total.append(gd['positive_rate_in_sub_total'])
+        civ.negative_rate_in_sub_total.append(gd['negative_rate_in_sub_total'])
 
     civ.iv = sum(civ.iv_list)
     return civ
@@ -368,20 +340,20 @@ def woe_trans(dvar,civ):
     # replace the var value with the given woe value
     var = copy.deepcopy(dvar)
     if not civ.is_discrete:
-        if len(civ.woe_list)>1:
+        if civ.woe_list.__len__()>1:
             split_list = []
             split_list.append(float("-inf"))
             split_list.extend([i for i in civ.split_list])
             split_list.append(float("inf"))
 
-            for i in range(len(civ.woe_list)):
+            for i in range(civ.woe_list.__len__()):
                 var[(dvar > split_list[i]) & (dvar <= split_list[i+1])] = civ.woe_list[i]
         else:
             var[:] = civ.woe_list[0]
     else:
         split_map = {}
-        for i in range(len(civ.split_list)):
-            for j in range(len(civ.split_list[i])):
+        for i in range(civ.split_list.__len__()):
+            for j in range(civ.split_list[i].__len__()):
                 split_map[civ.split_list[i][j]] = civ.woe_list[i]
 
         var = var.map(split_map)
@@ -400,6 +372,8 @@ def proc_woe_discrete(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     '''
     s = 'process discrete variable:'+str(var)
     print s.center(60, '-')
+
+    df = df[[var,'target']]
     div = DisInfoValue()
     div.var_name = var
     rdict = {}
@@ -409,10 +383,10 @@ def proc_woe_discrete(df,var,global_bt,global_gt,min_sample,alpha=0.01):
         # Here come with a '==',in case type error you must do Nan filling process firstly
         df_temp = df[df[var] == var_value]
         gd = calulate_iv(df_temp,var,global_bt,global_gt)
-        woei, ivi = gd.woei,gd.ivi
+        woei, ivi = gd['woei'],gd['ivi']
         div.origin_value.append(var_value)
         div.woe_before.append(woei)
-        rdict[var_value] = woei.values[0]
+        rdict[var_value] = woei
 
     cpvar = cpvar.map(rdict)
     df[var] = cpvar
@@ -438,10 +412,10 @@ def proc_woe_discrete(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     split_list_temp.append(float("inf"))
 
     a = []
-    for i in range(len(split_list_temp) - 1):
+    for i in range(split_list_temp.__len__() - 1):
         temp = []
-        for j in range(len(div.origin_value)):
-            if (div.woe_before[j]>split_list_temp[i]).values[0] & (div.woe_before[j]<=split_list_temp[i+1]).values[0]:
+        for j in range(div.origin_value.__len__()):
+            if (div.woe_before[j]>split_list_temp[i]) & (div.woe_before[j]<=split_list_temp[i+1]):
                 temp.append(div.origin_value[j])
 
         if temp != [] :
@@ -464,6 +438,7 @@ def proc_woe_continuous(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     '''
     s = 'process continuous variable:'+str(var)
     print s.center(60, '-')
+    df = df[[var,'target']]
     iv_tree = binning_data_split(df, var,global_bt,global_gt,min_sample,alpha)
 
     # Traversal tree, get the segmentation point
@@ -479,3 +454,21 @@ def proc_woe_continuous(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     civ = format_iv_split(df, var,split_list,global_bt,global_gt)
 
     return civ
+
+def fillna(dataset,bin_var_list,discrete_var_list,continuous_filler=-1,discrete_filler='missing'):
+    """
+    fill the null value in the dataframe inpalce
+    :param dataset: input dataset ,pandas.DataFrame type
+    :param bin_var_list:  continuous variables name list
+    :param discrete_var_list: discretevvvv variables name list
+    :param continuous_filler: the value to fill the null value in continuous variables
+    :param discrete_filler: the value to fill the null value in discrete variables
+    :return: null value,replace null value inplace
+    """
+    for var in [tmp for tmp in bin_var_list if tmp in list(dataset.columns)]:
+        # fill null
+        dataset.loc[dataset[var].isnull(), (var)] = continuous_filler
+
+    for var in [tmp for tmp in discrete_var_list if tmp in list(dataset.columns)]:
+        # fill null
+        dataset.loc[dataset[var].isnull(), (var)] = discrete_filler

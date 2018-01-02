@@ -369,9 +369,9 @@ def eval_feature_stability(civ_list, df_train, df_validation,candidate_var_list,
             psi_dict['segment_validation_percentage'].append(float(segment_validation_cnt) / len_validation)
 
     psi_dict['difference'] = pd.Series(psi_dict['segment_validation_percentage']) - pd.Series(psi_dict['segment_train_percentage'])
-    psi_dict['variance'] = map(lambda (x, y): x / (y+0.0000001), zip(psi_dict['segment_validation_percentage'], psi_dict['segment_train_percentage']))
-    psi_dict['Ln(variance)'] = np.log(psi_dict['variance'])
-    psi_dict['stability_index'] = np.dot(psi_dict['difference'],psi_dict['Ln(variance)'])
+    psi_dict['variance'] = map(lambda (x, y): x / (y+0.000000001), zip(psi_dict['segment_validation_percentage'], psi_dict['segment_train_percentage']))
+    psi_dict['Ln(variance)'] = np.log(np.array(psi_dict['variance'])+0.000000001)
+    psi_dict['stability_index'] = np.array(psi_dict['difference']) * np.array(psi_dict['Ln(variance)'])
 
     columns = ['feature_name','group','segment_train_cnt','segment_train_percentage',
                'segment_validation_cnt','segment_validation_percentage','difference',
