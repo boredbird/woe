@@ -49,14 +49,3 @@ class config:
             self.variable_type.loc[var_name,'v_type'] = type
         else:
             raise KeyError,"Invalid dtype specified! "
-
-
-
-
-
-
-
-
-
-
-

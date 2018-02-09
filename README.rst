@@ -1,11 +1,10 @@
-
 woe
-==========
+===
 
 .. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
     :target: https://travis-ci.org/justdoit0823/pywxclient
 
-version: 0.1.2
+version: 0.1.3
 
 Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
 
@@ -40,9 +39,10 @@ Features
 **woe aims to only support Python 2.7, so there is no guarantee for Python 3.**
 
 **woe** module function tree
-============
+============================
 
-.. code-block:: bash
+:: 
+
 	|- __init__
 	|- config.py 
 	|   |-- config
@@ -59,6 +59,8 @@ Features
 	|   |-- eval_model_summary()
 	|   |-- eval_segment_metrics()
 	|   |-- plot_ks()
+	|   |-- proc_cor_eval()
+	|   |-- proc_validation()
 	|   |-- wald_test()
 	|- feature_process.py 
 	|   |-- binning_data_split()
@@ -70,10 +72,19 @@ Features
 	|   |-- format_iv_split()
 	|   |-- proc_woe_continuous()
 	|   |-- proc_woe_discrete()
+	|   |-- process_train_woe()
+	|   |-- process_woe_trans()
 	|   |-- search()
 	|   |-- woe_trans()
+	|- ftrl.py 
+	|   |-- FTRL()
+	|   |-- LR()
 	|- GridSearch.py 
+	|   |-- fit_single_lr()
 	|   |-- grid_search_lr_c()
+	|   |-- grid_search_lr_c_main()
+	|   |-- grid_search_lr_validation()
+
 
 Examples
 ========
@@ -84,6 +95,19 @@ Or you can write a more complex program with this `woe` package.
 
 Version Records
 ================
+
+woe 0.1.3 2018-02-09
+
+	* woe.feature_process.proc_woe_discrete(): fix bug when deal with discrete varibales
+	* woe.eval.eval_feature_detail(): fix bug : utf-8 output file format
+	* woe.GridSearch.grid_search_lr_c_main(): add function warper for convenience and high efficiency
+	* woe.GridSearch.grid_search_lr_c_validation(): monitor the ks performance of training sets and test sets on different 'c'
+	* supplement examples test scripts
+
+
+woe 0.1.2 2017-12-05
+
+	* woe.ftrl.FTRL(): add online learning module
 
 woe 0.1.1 2017-11-28
 

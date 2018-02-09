@@ -71,7 +71,7 @@ def eval_feature_detail(Info_Value_list,out_path=False):
 
     if out_path:
         file_name = out_path if isinstance(out_path, str) else None
-        cformat_rst.to_csv(file_name, index=False)
+        cformat_rst.to_csv(file_name, index=False,encoding='utf-8')
 
     return cformat_rst
 

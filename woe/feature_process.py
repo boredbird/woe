@@ -1,8 +1,8 @@
 # -*- coding:utf-8 -*-
 __author__ = 'boredbird'
 import numpy as np
-from woe.config import  *
-from collections import namedtuple
+import woe.config as config
+import woe.eval as eval
 import copy
 import pickle
 import time
@@ -548,7 +548,7 @@ def process_woe_trans(in_data_path=None,rst_path=None,out_path=None,config_path=
         # fill null
         cfg.dataset_train.loc[cfg.dataset_train[var].isnull(), (var)] = 'missing'
 
-    fp.change_feature_dtype(cfg.dataset_train, cfg.variable_type)
+    change_feature_dtype(cfg.dataset_train, cfg.variable_type)
 
     output = open(rst_path, 'rb')
     rst = pickle.load(output)
@@ -556,6 +556,6 @@ def process_woe_trans(in_data_path=None,rst_path=None,out_path=None,config_path=
 
     # Training dataset Woe Transformation
     for r in rst:
-        cfg.dataset_train[r.var_name] = fp.woe_trans(cfg.dataset_train[r.var_name], r)
+        cfg.dataset_train[r.var_name] = woe_trans(cfg.dataset_train[r.var_name], r)
 
     cfg.dataset_train.to_csv(out_path)
