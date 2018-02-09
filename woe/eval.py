@@ -5,6 +5,8 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 from scipy.stats import ks_2samp
+import woe.config as config
+import pickle
 
 def compute_ks(proba,target):
     '''
@@ -154,12 +156,12 @@ def eval_feature_summary(train_X,model,civ_list,candidate_var_list,out_path=Fals
     feature_summary = {}
     feature_summary['feature_name'] = list(['Intercept'])
     feature_summary['feature_name'].extend(list(candidate_var_list))
-    feature_summary['coef'] = [model.intercept_]
-    feature_summary['coef'].extend(model.coef_[0])
+    feature_summary['coef'] = [model['classifier'].intercept_]
+    feature_summary['coef'].extend(model['classifier'].coef_[0])
     var_name = [civ.var_name for civ in civ_list]
     feature_summary['iv'] = [0]
     feature_summary['iv'].extend([civ_list[var_name.index(var)].iv for var in candidate_var_list])
-    feature_summary['wald_stats'], feature_summary['p_value'] = wald_test(model, train_X)
+    feature_summary['wald_stats'], feature_summary['p_value'] = wald_test(model['classifier'], train_X)
 
     feature_summary = pd.DataFrame(feature_summary)
     if out_path:
@@ -352,7 +354,7 @@ def eval_feature_stability(civ_list, df_train, df_validation,candidate_var_list,
                 psi_dict['segment_train_percentage'].append(float(segment_train_cnt)/len_train)
 
                 segment_validation_cnt = df_validation[var_name][(df_validation[var_name] > split_list[j])&
-                                                                    (df_validation[var_name] <= split_list[j+1])].count()
+                                                                 (df_validation[var_name] <= split_list[j+1])].count()
 
                 psi_dict['segment_validation_cnt'].append(segment_validation_cnt)
                 psi_dict['segment_validation_percentage'].append(float(segment_validation_cnt)/len_validation)
@@ -525,3 +527,55 @@ def plot_ks(proba,target,axistype='pct',out_path=False):
         plt.show()
 
     return a.loc[idx]
+
+
+def proc_validattion(dataset_path,config_path,model_path):
+    print '####PROC VALIDATION#####'
+    print 'dataset_path:\n',dataset_path
+    print 'config_path:\n',config_path
+    print 'model_path:\n',model_path
+    #fillna
+    config_path = r'E:\Code\Python_ML_Code\cs_model\config\config_cs_model.csv'
+    cfg = config.config()
+    cfg.load_file(config_path, dataset_path)
+
+    for var in [tmp for tmp in cfg.bin_var_list if tmp in list(cfg.dataset_train.columns)]:
+        # fill null
+        cfg.dataset_train.loc[cfg.dataset_train[var].isnull(), (var)] = 0
+
+    for var in [tmp for tmp in cfg.discrete_var_list if tmp in list(cfg.dataset_train.columns)]:
+        # fill null
+        cfg.dataset_train.loc[cfg.dataset_train[var].isnull(), (var)] = 0
+
+    output = open(model_path, 'rb')
+    clf_model = pickle.load(output)
+    output.close()
+
+    clf = clf_model['clf']
+    X_test = cfg.dataset_train[clf_model['features_list']]
+    y_test = cfg.dataset_train['target']
+
+    y_hat = clf.predict_proba(X_test)[:,1]
+    ks = compute_ks(y_hat,y_test)
+    print 'global_bt:',cfg.global_bt
+    print 'global_gt:', cfg.global_gt
+    print 'ks:',ks
+    return ks
+
+
+def proc_cor_eval(dataset_path,config_path,var_list_specfied,out_file_path):
+    dataset = pd.read_csv(dataset_path)
+    cfg = pd.read_csv(config_path)
+    candidate_var_list = cfg[cfg['is_modelfeature'] == 1]['var_name']
+
+    b = [var for var in dataset.columns if sum(dataset[var].isnull()) == 0]
+    candidate_var_list = list(set(candidate_var_list).intersection(set(b)))
+
+    if var_list_specfied.__len__()>0:
+        candidate_var_list = list(set(candidate_var_list).intersection(set(var_list_specfied)))
+
+    print 'candidate_var_list length:\n',candidate_var_list.__len__()
+    print 'candidate_var_list:\n',candidate_var_list
+
+    cor = np.corrcoef(dataset[candidate_var_list].values,rowvar=0)
+    pd.DataFrame(cor,columns=candidate_var_list).to_csv(out_file_path,index=False)

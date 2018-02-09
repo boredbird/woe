@@ -4,6 +4,8 @@ import numpy as np
 from woe.config import  *
 from collections import namedtuple
 import copy
+import pickle
+import time
 
 class node:
     '''Tree Node Class
@@ -96,26 +98,42 @@ def check_point(df,var,split,min_sample):
     """
     new_split = []
     if split is not None and split.__len__()>0:
+        # print 'run into if line:98'
         new_split.append(split[0])
+        # print new_split
         # Try the left section of the first split point partition;
         # If not meet the conditions then the split point will be removed
         pdf = df[df[var] <= split[0]]
         if (pdf.shape[0] < min_sample) or (len(np.unique(pdf['target']))<=1):
+            # print 'run into if line:105'
             new_split.pop()
+            # print new_split
         for i in range(0,split.__len__()-1):
             pdf = df[(df[var] > split[i]) & (df[var] <= split[i+1])]
             if (pdf.shape[0] < min_sample) or (np.unique(pdf['target']).__len__()<=1):
+                # print 'run into if line:112'
                 continue
             else:
+                # print 'run into if line:115'
                 new_split.append(split[i+1])
+                # print new_split
 
         #If the remaining sample is too small then remove the last one
-        if (len(df[df[var] > split[split.__len__()-1]])< min_sample) & (new_split.__len__()>1):
+        # print new_split
+        # print new_split.__len__()
+        if new_split.__len__()>1 and len(df[df[var] >= new_split[new_split.__len__()-1]])<min_sample:
+            # print 'run into if line:120'
             new_split.pop()
+            # print new_split
         #If the remaining samples have only a positive or negative target then remove the last one
-        if np.unique(df[df[var] > split[split.__len__()-1]]['target']).__len__()<=1 and new_split.__len__()>1:
+        if new_split.__len__()>1 and np.unique(df[df[var] >= new_split[new_split.__len__()-1]]['target']).__len__()<=1:
+            # print split
+            # print split[split.__len__()-1]
+            # print df[df[var] >= new_split[new_split.__len__()-1]].shape
+            # print np.unique(df[df[new_split] > new_split[new_split.__len__()-1]]['target'])
+            # print 'run into if line:125'
             new_split.pop()
-
+            # print new_split
         #If the split list has only one value, and no smaller than this value
         if new_split == []:
             new_split = split
@@ -195,11 +213,14 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     woei, ivi = gd['woei'],gd['ivi']
 
     if np.unique(df[var]).__len__() <=8:
+        # print 'running into if'
         split = list(np.unique(df[var]))
         split.sort()
+        # print 'split:',split
         #Segmentation point checking and processing
         split = check_point(df, var, split, min_sample)
         split.sort()
+        # print 'after check:',split
         iv_var.split_list = split
         return node(split_point=split,iv=ivi)
 
@@ -222,7 +243,7 @@ def binning_data_split(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     #remove max value and min value in case dataset_r  or dataset_l will be null
     for point in percent_value[0:percent_value.__len__()-1]:
         # If there is only a sample or a negative sample, skip
-        if set(df[df[var] > point]['target']).__len__() == 1 or set(df[df[var] <= point]['target']).__len__() == 1\
+        if set(df[df[var] > point]['target']).__len__() == 1 or set(df[df[var] <= point]['target']).__len__() == 1 \
                 or df[df[var] > point].shape[0] < min_sample or df[df[var] <= point].shape[0] < min_sample :
             continue
 
@@ -378,7 +399,7 @@ def proc_woe_discrete(df,var,global_bt,global_gt,min_sample,alpha=0.01):
     div.var_name = var
     rdict = {}
     cpvar = df[var]
-
+    # print 'np.unique(df[var])：',np.unique(df[var])
     for var_value in np.unique(df[var]):
         # Here come with a '==',in case type error you must do Nan filling process firstly
         df_temp = df[df[var] == var_value]
@@ -387,6 +408,7 @@ def proc_woe_discrete(df,var,global_bt,global_gt,min_sample,alpha=0.01):
         div.origin_value.append(var_value)
         div.woe_before.append(woei)
         rdict[var_value] = woei
+        # print var_value,woei,ivi
 
     cpvar = cpvar.map(rdict)
     df[var] = cpvar
@@ -472,3 +494,68 @@ def fillna(dataset,bin_var_list,discrete_var_list,continuous_filler=-1,discrete_
     for var in [tmp for tmp in discrete_var_list if tmp in list(dataset.columns)]:
         # fill null
         dataset.loc[dataset[var].isnull(), (var)] = discrete_filler
+
+
+def process_train_woe(infile_path=None,outfile_path=None,rst_path=None,config_path=None):
+    print 'run into process_train_woe: \n',time.asctime(time.localtime(time.time()))
+    data_path = infile_path
+    cfg = config.config()
+    cfg.load_file(config_path,data_path)
+    bin_var_list = [tmp for tmp in cfg.bin_var_list if tmp in list(cfg.dataset_train.columns)]
+
+    for var in bin_var_list:
+        # fill null
+        cfg.dataset_train.loc[cfg.dataset_train[var].isnull(), (var)] = -1
+
+    # change feature dtypes
+    change_feature_dtype(cfg.dataset_train, cfg.variable_type)
+    rst = []
+
+    # process woe transformation of continuous variables
+    print 'process woe transformation of continuous variables: \n',time.asctime(time.localtime(time.time()))
+    print 'cfg.global_bt',cfg.global_bt
+    print 'cfg.global_gt', cfg.global_gt
+
+    for var in bin_var_list:
+        rst.append(proc_woe_continuous(cfg.dataset_train,var,cfg.global_bt,cfg.global_gt,cfg.min_sample,alpha=0.05))
+
+    # process woe transformation of discrete variables
+    print 'process woe transformation of discrete variables: \n',time.asctime(time.localtime(time.time()))
+    for var in [tmp for tmp in cfg.discrete_var_list if tmp in list(cfg.dataset_train.columns)]:
+        # fill null
+        cfg.dataset_train.loc[cfg.dataset_train[var].isnull(), (var)] = 'missing'
+        rst.append(proc_woe_discrete(cfg.dataset_train,var,cfg.global_bt,cfg.global_gt,cfg.min_sample,alpha=0.05))
+
+    feature_detail = eval.eval_feature_detail(rst, outfile_path)
+
+    print 'save woe transformation rule into pickle: \n',time.asctime(time.localtime(time.time()))
+    output = open(rst_path, 'wb')
+    pickle.dump(rst,output)
+    output.close()
+
+    return feature_detail,rst
+
+
+def process_woe_trans(in_data_path=None,rst_path=None,out_path=None,config_path=None):
+    cfg = config.config()
+    cfg.load_file(config_path, in_data_path)
+
+    for var in [tmp for tmp in cfg.bin_var_list if tmp in list(cfg.dataset_train.columns)]:
+        # fill null
+        cfg.dataset_train.loc[cfg.dataset_train[var].isnull(), (var)] = -1
+
+    for var in [tmp for tmp in cfg.discrete_var_list if tmp in list(cfg.dataset_train.columns)]:
+        # fill null
+        cfg.dataset_train.loc[cfg.dataset_train[var].isnull(), (var)] = 'missing'
+
+    fp.change_feature_dtype(cfg.dataset_train, cfg.variable_type)
+
+    output = open(rst_path, 'rb')
+    rst = pickle.load(output)
+    output.close()
+
+    # Training dataset Woe Transformation
+    for r in rst:
+        cfg.dataset_train[r.var_name] = fp.woe_trans(cfg.dataset_train[r.var_name], r)
+
+    cfg.dataset_train.to_csv(out_path)
