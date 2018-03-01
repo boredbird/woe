@@ -22,7 +22,7 @@ if __name__ == '__main__':
     woe_test_path = os.getcwd()+'\\dataset_test_woed.csv'
     fp.process_woe_trans(data_path,rst_pkl_path,woe_test_path,config_path)
 
-    print '###TRAIN SCORECARD MODEL###'
+    print('###TRAIN SCORECARD MODEL###')
     params = {}
     params['dataset_path'] = woe_train_path
     params['validation_path'] = woe_test_path
@@ -37,5 +37,5 @@ if __name__ == '__main__':
     params['var_list_specfied'] = []
     params['cs'] = np.logspace(-4, -1,40)
     for key,value in params.items():
-        print key,': ',value
+        print(key,': ',value)
     gs.grid_search_lr_c_main(params)

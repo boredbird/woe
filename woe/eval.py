@@ -31,7 +31,7 @@ def eval_feature_detail(Info_Value_list,out_path=False):
     format_rst = []
 
     for kk in range(0,len(rst)):
-        print  rst[kk].var_name
+        print(rst[kk].var_name)
         split_list = []
         if rst[kk].split_list != []:
             if not rst[kk].is_discrete:
@@ -371,7 +371,7 @@ def eval_feature_stability(civ_list, df_train, df_validation,candidate_var_list,
             psi_dict['segment_validation_percentage'].append(float(segment_validation_cnt) / len_validation)
 
     psi_dict['difference'] = pd.Series(psi_dict['segment_validation_percentage']) - pd.Series(psi_dict['segment_train_percentage'])
-    psi_dict['variance'] = map(lambda (x, y): x / (y+0.000000001), zip(psi_dict['segment_validation_percentage'], psi_dict['segment_train_percentage']))
+    psi_dict['variance'] = list(map(lambda x_y: x_y[0] / (x_y[1]+0.000000001), zip(psi_dict['segment_validation_percentage'], psi_dict['segment_train_percentage'])))
     psi_dict['Ln(variance)'] = np.log(np.array(psi_dict['variance'])+0.000000001)
     psi_dict['stability_index'] = np.array(psi_dict['difference']) * np.array(psi_dict['Ln(variance)'])
 
@@ -412,7 +412,7 @@ def plot_ks(proba,target,axistype='pct',out_path=False):
     a['percent'] = a['Times']*1.0/len(a)
 
     idx = np.argmax(a['ks'])
-    # print a.loc[idx]
+    # print(a.loc[idx])
 
     if axistype == 'pct':
         '''
@@ -530,10 +530,10 @@ def plot_ks(proba,target,axistype='pct',out_path=False):
 
 
 def proc_validattion(dataset_path,config_path,model_path):
-    print '####PROC VALIDATION#####'
-    print 'dataset_path:\n',dataset_path
-    print 'config_path:\n',config_path
-    print 'model_path:\n',model_path
+    print('####PROC VALIDATION#####')
+    print('dataset_path:\n',dataset_path)
+    print('config_path:\n',config_path)
+    print('model_path:\n',model_path)
     #fillna
     config_path = r'E:\Code\Python_ML_Code\cs_model\config\config_cs_model.csv'
     cfg = config.config()
@@ -557,9 +557,9 @@ def proc_validattion(dataset_path,config_path,model_path):
 
     y_hat = clf.predict_proba(X_test)[:,1]
     ks = compute_ks(y_hat,y_test)
-    print 'global_bt:',cfg.global_bt
-    print 'global_gt:', cfg.global_gt
-    print 'ks:',ks
+    print('global_bt:',cfg.global_bt)
+    print('global_gt:', cfg.global_gt)
+    print('ks:',ks)
     return ks
 
 
@@ -574,8 +574,8 @@ def proc_cor_eval(dataset_path,config_path,var_list_specfied,out_file_path):
     if var_list_specfied.__len__()>0:
         candidate_var_list = list(set(candidate_var_list).intersection(set(var_list_specfied)))
 
-    print 'candidate_var_list length:\n',candidate_var_list.__len__()
-    print 'candidate_var_list:\n',candidate_var_list
+    print('candidate_var_list length:\n',candidate_var_list.__len__())
+    print('candidate_var_list:\n',candidate_var_list)
 
     cor = np.corrcoef(dataset[candidate_var_list].values,rowvar=0)
     pd.DataFrame(cor,columns=candidate_var_list).to_csv(out_file_path,index=False)

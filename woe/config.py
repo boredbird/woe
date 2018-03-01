@@ -48,4 +48,4 @@ class config:
         if type in ['object','string','int64','uint8','float64','bool1','bool2','dates','category']:
             self.variable_type.loc[var_name,'v_type'] = type
         else:
-            raise KeyError,"Invalid dtype specified! "
+            raise KeyError("Invalid dtype specified! ")

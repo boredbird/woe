@@ -4,7 +4,7 @@ woe
 .. image:: https://travis-ci.org/justdoit0823/pywxclient.svg?branch=master
     :target: https://travis-ci.org/justdoit0823/pywxclient
 
-version: 0.1.3
+version: 0.1.4
 
 Tools for WoE Transformation mostly used in ScoreCard Model for credit rating
 
@@ -36,7 +36,6 @@ Features
   * Storage of IV tree for follow-up use
 
 
-**woe aims to only support Python 2.7, so there is no guarantee for Python 3.**
 
 **woe** module function tree
 ============================
@@ -95,6 +94,8 @@ Or you can write a more complex program with this `woe` package.
 
 Version Records
 ================
+woe 0.1.4 2018-03-01
+	* support py3
 
 woe 0.1.3 2018-02-09
 
