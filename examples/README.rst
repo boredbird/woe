@@ -4,8 +4,11 @@ Dataset Information
 This dataset contains information on default payments, demographic factors, credit data, history of payment, and bill statements of credit card clients in Taiwan from April 2005 to September 2005.
 
 **YOU SHOULD SPECIFY THE VARIABLES DTYPES WITH config.csv**
+
 Appointment:
+
 continuous variables: is_tobe_bin=1 and is_candidate=1
+
 discrete variables: is_tobe_bin=0 and is_candidate=1
 
 Content
