@@ -34,7 +34,7 @@ def grid_search_lr_c(X_train,y_train,cs,df_coef_path=False
 
     print("Computing regularization path ...")
     start = datetime.now()
-    print start
+    print(start)
     coefs_ = []
     ks = []
     for c in cs:
@@ -46,7 +46,7 @@ def grid_search_lr_c(X_train,y_train,cs,df_coef_path=False
         ks.append(compute_ks(proba,y_train))
 
     end = datetime.now()
-    print end
+    print(end)
     print("This took ", end - start)
     coef_cv_df = pd.DataFrame(coefs_,columns=X_train.columns)
     coef_cv_df['ks'] = ks
@@ -109,14 +109,14 @@ def grid_search_lr_c_validation(X_train,y_train,validation_dataset_list,cs=[0.01
 
     print("Computing regularization path ...")
     start = datetime.now()
-    print start
+    print(start)
     coefs_ = []
     ks = []
     ks_validation1 = []
     ks_validation2 = []
     counter = 0
     for c in cs:
-        print 'time: ',time.asctime(time.localtime(time.time())),'counter: ',counter, ' c: ',c
+        print('time: ',time.asctime(time.localtime(time.time())),'counter: ',counter, ' c: ',c)
         clf_l1_LR.set_params(C=c)
         clf_l1_LR.fit(X_train, y_train)
         coefs_.append(clf_l1_LR.coef_.ravel().copy())
@@ -127,11 +127,11 @@ def grid_search_lr_c_validation(X_train,y_train,validation_dataset_list,cs=[0.01
         ks.append(compute_ks(proba,y_train))
         ks_validation1.append(compute_ks(validation_proba1,validation_dataset_list[0]['target']))
 
-        print 'ks:\t',ks[-1],'ks_validation1:\t',ks_validation1[-1]
+        print('ks:\t',ks[-1],'ks_validation1:\t',ks_validation1[-1])
         counter += 1
 
     end = datetime.now()
-    print end
+    print(end)
     print("This took ", end - start)
     coef_cv_df = pd.DataFrame(coefs_,columns=X_train.columns)
     coef_cv_df['ks'] = ks
@@ -186,7 +186,7 @@ def grid_search_lr_c_validation(X_train,y_train,validation_dataset_list,cs=[0.01
 
 
 def grid_search_lr_c_main(params):
-    print 'run into grid_search_lr_c_main:'
+    print('run into grid_search_lr_c_main:')
     dataset_path = params['dataset_path']
     validation_path = params['validation_path']
     config_path = params['config_path']
@@ -207,10 +207,10 @@ def grid_search_lr_c_main(params):
     if var_list_specfied.__len__()>0:
         candidate_var_list = list(set(candidate_var_list).intersection(set(var_list_specfied)))
 
-    print 'candidate_var_list length:\n',candidate_var_list.__len__()
-    print 'candidate_var_list:\n',candidate_var_list
+    print('candidate_var_list length:\n',candidate_var_list.__len__())
+    print('candidate_var_list:\n',candidate_var_list)
 
-    print 'change dtypes:float64 to float32'
+    print('change dtypes:float64 to float32')
     for var in candidate_var_list:
         dataset_train[var] = dataset_train[var].astype(np.float32)
 
@@ -228,13 +228,13 @@ def grid_search_lr_c_main(params):
     validation_dataset_list.append(validation_dataset[validation_cols_keep])
 
     cs = params['cs']
-    print 'cs',cs
+    print('cs',cs)
     c,ks = grid_search_lr_c_validation(X_train,y_train,validation_dataset_list,cs,df_coef_path,pic_coefpath_title,pic_coefpath
                                        ,pic_performance_title,pic_performance)
-    print 'pic_coefpath:\n',pic_coefpath
-    print 'pic_performance:\n',pic_performance
-    print 'ks performance on the c:'
-    print c,ks
+    print('pic_coefpath:\n',pic_coefpath)
+    print('pic_performance:\n',pic_performance)
+    print('ks performance on the c:')
+    print(c,ks)
 
     return (c,ks)
 
@@ -250,17 +250,17 @@ def fit_single_lr(dataset_path,config_path,var_list_specfied,out_model_path,c=0.
     if var_list_specfied.__len__()>0:
         candidate_var_list = list(set(candidate_var_list).intersection(set(var_list_specfied)))
 
-    print 'candidate_var_list length:\n',candidate_var_list.__len__()
-    print 'candidate_var_list:\n',candidate_var_list
+    print('candidate_var_list length:\n',candidate_var_list.__len__())
+    print('candidate_var_list:\n',candidate_var_list)
 
-    print 'change dtypes:float64 to float32'
+    print('change dtypes:float64 to float32')
     for var in candidate_var_list:
         dataset_train[var] = dataset_train[var].astype(np.float32)
 
     X_train = dataset_train[dataset_train.target >=0][candidate_var_list]
     y_train = dataset_train[dataset_train.target >=0]['target']
 
-    print 'c:',c
+    print('c:',c)
     clf_lr_a = LogisticRegression(C=c, penalty='l1', tol=0.01,class_weight='balanced')
 
     clf_lr_a.fit(X_train, y_train)

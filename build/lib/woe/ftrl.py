@@ -56,7 +56,7 @@ class FTRL(object):
             for x, y in trainSet:
                 loss = self.update(x, y)
                 if verbos and n%verbos==0:
-                    print "itr=" + str(n) + "\tloss=" + str(loss)
+                    print("itr=" + str(n) + "\tloss=" + str(loss))
                     self.w_list.append(self.w)
                     self.loss_list.append(loss)
                 if loss < eta:
@@ -64,9 +64,9 @@ class FTRL(object):
                 else:
                     itr = 0
                 if itr >= epochs:  # when the loss function has been continuously epochs iterations less than eta
-                    print "loss have less than", eta, " continuously for ", itr, "iterations"
+                    print("loss have less than", eta, " continuously for ", itr, "iterations")
                     return
                 n += 1
                 if n >= max_itr:
-                    print "reach max iteration", max_itr
+                    print("reach max iteration", max_itr)
                     return
